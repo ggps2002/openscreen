@@ -40,7 +40,7 @@ export const DEFAULT_EDITOR_APPEARANCE_SETTINGS: {
 	shadowIntensity: 0,
 	showBlur: false,
 	motionBlurAmount: 0,
-	borderRadius: 0,
+	borderRadius: 12,
 	showTrimWaveform: true,
 };
 
