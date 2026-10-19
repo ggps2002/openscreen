@@ -2,6 +2,7 @@ import { Application, Graphics, Sprite } from "pixi.js";
 import {
 	computeCompositeLayout,
 	type RenderRect,
+	resolveScreenBorderRadius,
 	type Size,
 	type StyledRenderRect,
 	type WebcamLayoutPreset,
@@ -137,7 +138,8 @@ export function layoutVideoContent(params: LayoutParams): LayoutResult | null {
 		screenRect.y,
 		screenRect.width,
 		screenRect.height,
-		compositeLayout.screenBorderRadius ?? (compositeLayout.screenCover ? 0 : borderRadius),
+		compositeLayout.screenBorderRadius ??
+			(compositeLayout.screenCover ? 0 : resolveScreenBorderRadius(borderRadius, width, height)),
 	);
 	maskGraphics.fill({ color: 0xffffff });
 
@@ -148,7 +150,8 @@ export function layoutVideoContent(params: LayoutParams): LayoutResult | null {
 		baseOffset: { x: spriteX, y: spriteY },
 		maskRect: compositeLayout.screenRect,
 		maskBorderRadius:
-			compositeLayout.screenBorderRadius ?? (compositeLayout.screenCover ? 0 : borderRadius),
+			compositeLayout.screenBorderRadius ??
+			(compositeLayout.screenCover ? 0 : resolveScreenBorderRadius(borderRadius, width, height)),
 		webcamRect: compositeLayout.webcamRect,
 		cropBounds: { startX: cropStartX, endX: cropEndX, startY: cropStartY, endY: cropEndY },
 	};

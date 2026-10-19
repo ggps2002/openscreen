@@ -46,6 +46,7 @@ import {
 	computeCompositeLayout,
 	getWebcamLayoutPresetDefinition,
 	reactiveWebcamScale,
+	resolveScreenBorderRadius,
 	type Size,
 	type StyledRenderRect,
 } from "@/lib/compositeLayout";
@@ -739,16 +740,12 @@ export class FrameRenderer {
 		this.videoContainer.x = screenRect.x;
 		this.videoContainer.y = screenRect.y;
 
-		// Scale border radius by the export/preview canvas ratio
-		const previewWidth = this.config.previewWidth ?? this.config.width;
-		const previewHeight = this.config.previewHeight ?? this.config.height;
-		const canvasScaleFactor = Math.min(width / previewWidth, height / previewHeight);
 		const scaledBorderRadius =
 			compositeLayout.screenBorderRadius != null
 				? compositeLayout.screenBorderRadius
 				: compositeLayout.screenCover
 					? 0
-					: borderRadius * canvasScaleFactor;
+					: resolveScreenBorderRadius(borderRadius, width, height);
 
 		this.maskGraphics.clear();
 		this.maskGraphics.roundRect(0, 0, screenRect.width, screenRect.height, scaledBorderRadius);

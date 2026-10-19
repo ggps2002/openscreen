@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { computeCompositeLayout } from "./compositeLayout";
+import { computeCompositeLayout, resolveScreenBorderRadius } from "./compositeLayout";
 
 describe("computeCompositeLayout", () => {
 	it("anchors the overlay in the lower-right corner", () => {
@@ -262,5 +262,20 @@ describe("computeCompositeLayout", () => {
 			rectangleLayout?.webcamRect?.borderRadius ?? 0,
 		);
 		expect(roundedLayout?.webcamRect?.maskShape).toBe("rounded");
+	});
+});
+
+describe("resolveScreenBorderRadius", () => {
+	it("keeps the slider value on a 540px-tall stage", () => {
+		expect(resolveScreenBorderRadius(16, 960, 540)).toBe(16);
+	});
+
+	it("scales with the canvas so exports match the preview", () => {
+		expect(resolveScreenBorderRadius(16, 1920, 1080)).toBe(32);
+		expect(resolveScreenBorderRadius(16, 1080, 1920)).toBe(32);
+	});
+
+	it("returns 0 when rounding is off", () => {
+		expect(resolveScreenBorderRadius(0, 1920, 1080)).toBe(0);
 	});
 });
