@@ -288,6 +288,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 		const videoSpriteRef = useRef<Sprite | null>(null);
 		const videoContainerRef = useRef<Container | null>(null);
 		const cameraContainerRef = useRef<Container | null>(null);
+		const stageMaskRef = useRef<Graphics | null>(null);
 		const timeUpdateAnimationRef = useRef<number | null>(null);
 		const [pixiReady, setPixiReady] = useState(false);
 		const [videoReady, setVideoReady] = useState(false);
@@ -573,6 +574,19 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 				borderRadiusRef.current = result.maskBorderRadius;
 				cropBoundsRef.current = result.cropBounds;
 				setWebcamLayout(result.webcamRect);
+
+				const stageMask = stageMaskRef.current;
+				if (stageMask) {
+					stageMask.clear();
+					stageMask.roundRect(
+						0,
+						0,
+						result.stageSize.width,
+						result.stageSize.height,
+						result.maskBorderRadius,
+					);
+					stageMask.fill({ color: 0xffffff });
+				}
 
 				// Reset camera container to identity
 				cameraContainer.scale.set(1);
@@ -1031,6 +1045,12 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 				cameraContainerRef.current = cameraContainer;
 				app.stage.addChild(cameraContainer);
 
+				// Rounds the frame corners when zoom pushes the video mask past the canvas edges
+				const stageMask = new Graphics();
+				stageMaskRef.current = stageMask;
+				app.stage.addChild(stageMask);
+				cameraContainer.mask = stageMask;
+
 				// Video container - holds the masked video sprite
 				const videoContainer = new Container();
 				videoContainerRef.current = videoContainer;
@@ -1069,6 +1089,7 @@ const VideoPlayback = forwardRef<VideoPlaybackRef, VideoPlaybackProps>(
 				}
 				appRef.current = null;
 				cameraContainerRef.current = null;
+				stageMaskRef.current = null;
 				videoContainerRef.current = null;
 				videoSpriteRef.current = null;
 			};
