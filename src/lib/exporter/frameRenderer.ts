@@ -46,6 +46,7 @@ import {
 	computeCompositeLayout,
 	getWebcamLayoutPresetDefinition,
 	reactiveWebcamScale,
+	resolveScreenBorderRadius,
 	type Size,
 	type StyledRenderRect,
 } from "@/lib/compositeLayout";
@@ -139,6 +140,7 @@ export class FrameRenderer {
 	private videoSprite: Sprite | null = null;
 	private backgroundSprite: HTMLCanvasElement | null = null;
 	private maskGraphics: Graphics | null = null;
+	private stageMaskGraphics: Graphics | null = null;
 	private blurFilter: BlurFilter | null = null;
 	private motionBlurFilter: MotionBlurFilter | null = null;
 	private shadowCanvas: HTMLCanvasElement | null = null;
@@ -208,6 +210,11 @@ export class FrameRenderer {
 		this.videoContainer = new Container();
 		this.app.stage.addChild(this.cameraContainer);
 		this.cameraContainer.addChild(this.videoContainer);
+
+		// Rounds the frame corners when zoom pushes the video mask past the canvas edges
+		this.stageMaskGraphics = new Graphics();
+		this.app.stage.addChild(this.stageMaskGraphics);
+		this.cameraContainer.mask = this.stageMaskGraphics;
 
 		// Background renders separately, not in PixiJS
 		await this.setupBackground();
@@ -733,20 +740,22 @@ export class FrameRenderer {
 		this.videoContainer.x = screenRect.x;
 		this.videoContainer.y = screenRect.y;
 
-		// Scale border radius by the export/preview canvas ratio
-		const previewWidth = this.config.previewWidth ?? this.config.width;
-		const previewHeight = this.config.previewHeight ?? this.config.height;
-		const canvasScaleFactor = Math.min(width / previewWidth, height / previewHeight);
 		const scaledBorderRadius =
 			compositeLayout.screenBorderRadius != null
 				? compositeLayout.screenBorderRadius
 				: compositeLayout.screenCover
 					? 0
-					: borderRadius * canvasScaleFactor;
+					: resolveScreenBorderRadius(borderRadius, width, height);
 
 		this.maskGraphics.clear();
 		this.maskGraphics.roundRect(0, 0, screenRect.width, screenRect.height, scaledBorderRadius);
 		this.maskGraphics.fill({ color: 0xffffff });
+
+		if (this.stageMaskGraphics) {
+			this.stageMaskGraphics.clear();
+			this.stageMaskGraphics.roundRect(0, 0, width, height, scaledBorderRadius);
+			this.stageMaskGraphics.fill({ color: 0xffffff });
+		}
 
 		// baseOffset is the stage position of the full (uncropped) sprite's top-left, matching
 		// preview semantics, so consumers (e.g. cursor highlight) can map normalized
@@ -1121,6 +1130,7 @@ export class FrameRenderer {
 		this.cameraContainer = null;
 		this.videoContainer = null;
 		this.maskGraphics = null;
+		this.stageMaskGraphics = null;
 		this.blurFilter = null;
 		this.motionBlurFilter = null;
 		this.shadowCanvas = null;

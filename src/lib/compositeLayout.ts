@@ -400,6 +400,20 @@ export function computeCompositeLayout(params: {
 	};
 }
 
+// Roundness is set in pixels for a 540px-tall 16:9 stage and scales with the canvas, so
+// corners look the same in a small preview, fullscreen preview and the exported video.
+const SCREEN_BORDER_RADIUS_REFERENCE = 540;
+
+export function resolveScreenBorderRadius(
+	borderRadius: number,
+	canvasWidth: number,
+	canvasHeight: number,
+): number {
+	const shortSide = Math.min(canvasWidth, canvasHeight);
+	if (borderRadius <= 0 || shortSide <= 0) return 0;
+	return (borderRadius * shortSide) / SCREEN_BORDER_RADIUS_REFERENCE;
+}
+
 function centerRect(params: { canvasSize: Size; size: Size; maxSize: Size }): RenderRect {
 	const { canvasSize, size, maxSize } = params;
 	return centerRectInBounds({
